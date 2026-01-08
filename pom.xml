@@ -46,6 +46,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>21.0.7</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

@@ -15,6 +15,9 @@ import ci553.happyshop.storageAccess.DatabaseRWFactory;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import java.io.IOException;
+import ci553.happyshop.audio.BackgroundMusic;
+import javafx.application.Platform;
+
 
 /**
  * The Main JavaFX application class. The Main class is executable directly.
@@ -42,6 +45,12 @@ public class Main extends Application {
     //starts the system
     @Override
     public void start(Stage window) throws IOException {
+
+        BackgroundMusic.start();// Starts the background music when app is initialised
+        Platform.setImplicitExit(true);
+        Runtime.getRuntime().addShutdownHook(new Thread(BackgroundMusic::stop));
+
+
         startCustomerClient();
         startPickerClient();
         startOrderTracker();
