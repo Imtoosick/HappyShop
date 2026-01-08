@@ -17,6 +17,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import ci553.happyshop.client.audio.BackgroundMusic;
 import javafx.application.Platform;
+import ci553.happyshop.auth.AuthService;
+import ci553.happyshop.auth.LoginView;
+
 
 
 /**
@@ -50,23 +53,28 @@ public class Main extends Application {
         Platform.setImplicitExit(true);
         Runtime.getRuntime().addShutdownHook(new Thread(BackgroundMusic::stop));
 
+        AuthService authService = new AuthService();
+        LoginView loginView = new LoginView(authService);
 
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
+        loginView.show(() -> {
 
-        startCustomerClient();
-        startPickerClient();
-        startOrderTracker();
+            startCustomerClient();
+            startPickerClient();
+            startOrderTracker();
 
-        // Initializes the order map for the OrderHub. This must be called after starting the observer clients
-        // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
-        initializeOrderMap();
+            startCustomerClient();
+            startPickerClient();
+            startOrderTracker();
 
-        startWarehouseClient();
-        startWarehouseClient();
+            // Initializes the order map for the OrderHub. This must be called after starting the observer clients
+            // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
+            initializeOrderMap();
 
-        startEmergencyExit();
+            startWarehouseClient();
+            startWarehouseClient();
+
+            startEmergencyExit();
+        });
     }
 
     /** The customer GUI -search prodduct, add to trolley, cancel/submit trolley, view receipt
