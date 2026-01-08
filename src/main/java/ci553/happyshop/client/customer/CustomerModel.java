@@ -2,6 +2,9 @@ package ci553.happyshop.client.customer;
 
 import ci553.happyshop.catalogue.Order;
 import ci553.happyshop.catalogue.Product;
+import ci553.happyshop.payment.PaymentDialogue;
+import ci553.happyshop.payment.PaymentMethod;
+import ci553.happyshop.payment.PaymentResult;
 import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.utility.StorageLocation;
@@ -23,7 +26,7 @@ import java.util.Map;
 public class CustomerModel {
     public CustomerView cusView;
     public DatabaseRW databaseRW; //Interface type, not specific implementation
-                                  //Benefits: Flexibility: Easily change the database implementation.
+    //Benefits: Flexibility: Easily change the database implementation.
 
     private Product theProduct =null; // product found from search
     private ArrayList<Product> trolley =  new ArrayList<>(); // a list of products in trolley
@@ -83,6 +86,16 @@ public class CustomerModel {
 
     void checkOut() throws IOException, SQLException {
         if(!trolley.isEmpty()){
+            double totalAmount = calculateTotal();
+            PaymentDialogue paymentDialogue = new PaymentDialogue();
+            PaymentResult paymentResult = paymentDialogue.showAndWait(totalAmount);
+
+            if (paymentResult == null || !paymentResult.isSuccess()) {
+                displayLaSearchResult = (paymentResult == null) ? "Payment cancelled" : paymentResult.getMessage();
+                updateView();
+                return;
+            }
+
             // Group the products in the trolley by productId to optimize stock checking
             // Check the database for sufficient stock for all products in the trolley.
             // If any products are insufficient, the update will be rolled back.
@@ -95,12 +108,28 @@ public class CustomerModel {
                 //get OrderHub and tell it to make a new Order
                 OrderHub orderHub =OrderHub.getOrderHub();
                 Order theOrder = orderHub.newOrder(trolley);
+
+                String paymentInfo;
+                if (paymentResult.getMethod() == PaymentMethod.CASH) {
+                    paymentInfo = String.format(
+                            "Payment: CASH\nPaid: £%.2f\nChange: £%.2f\n",
+                            paymentResult.getAmountPaid(),
+                            paymentResult.getChange()
+                    );
+                } else {
+                    paymentInfo = String.format(
+                            "Payment: CARD\nCard: **** **** **** %s\n",
+                            paymentResult.getCardLast4()
+                    );
+                }
+
                 trolley.clear();
                 displayTaTrolley ="";
                 displayTaReceipt = String.format(
-                        "Order_ID: %s\nOrdered_Date_Time: %s\n%s",
+                        "Order_ID: %s\nOrdered_Date_Time: %s\n%s\n%s",
                         theOrder.getOrderId(),
                         theOrder.getOrderedDateTime(),
+                        paymentInfo,
                         ProductListFormatter.buildString(theOrder.getProductList())
                 );
                 System.out.println(displayTaReceipt);
@@ -175,9 +204,18 @@ public class CustomerModel {
         }
         cusView.update(imageName, displayLaSearchResult, displayTaTrolley,displayTaReceipt);
     }
-     // extra notes:
-     //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
-     //File.toURI(): Converts a File object (a file on the filesystem) to a URI object
+
+    private double calculateTotal() {
+        double total = 0.0;
+        for (Product p : trolley) {
+            total += p.getUnitPrice() * p.getOrderedQuantity();
+        }
+        return total;
+    }
+
+    // extra notes:
+    //Path.toUri(): Converts a Path object (a file or a directory path) to a URI object.
+    //File.toURI(): Converts a File object (a file on the filesystem) to a URI object
 
     //for test only
     public ArrayList<Product> getTrolley() {
