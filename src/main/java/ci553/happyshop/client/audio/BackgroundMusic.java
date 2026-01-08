@@ -1,4 +1,4 @@
-package ci553.happyshop.audio;
+package ci553.happyshop.client.audio;
 
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
