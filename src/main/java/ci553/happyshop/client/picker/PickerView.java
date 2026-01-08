@@ -8,6 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import ci553.happyshop.client.audio.UISoundInstaller;
+
 
 import java.io.IOException;
 
@@ -45,6 +47,8 @@ public class PickerView  {
     public void start(Stage window) {
         vbOrderMapRoot = createOrderMapRoot();
         vbOrderDetailRoot = createOrderDetailRoot();
+        UISoundInstaller.install(vbOrderMapRoot);
+        UISoundInstaller.install(vbOrderDetailRoot);
         scene = new Scene(vbOrderMapRoot, WIDTH, HEIGHT);
         window.setScene(scene);
         window.setTitle("🛒 HappyShop Order Picker");

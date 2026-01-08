@@ -10,6 +10,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import ci553.happyshop.client.audio.UISoundInstaller;
+
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -42,6 +44,7 @@ public class OrderTracker {
         vbox.setStyle(UIStyle. rootStyleGray);
 
         Scene scene = new Scene(vbox, WIDTH, HEIGHT);
+        UISoundInstaller.install(vbox);
         Stage window = new Stage();
         window.setScene(scene);
         window.setTitle("🛒Order Tracker");

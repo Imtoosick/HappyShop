@@ -15,7 +15,7 @@ import ci553.happyshop.storageAccess.DatabaseRWFactory;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import java.io.IOException;
-import ci553.happyshop.audio.BackgroundMusic;
+import ci553.happyshop.client.audio.BackgroundMusic;
 import javafx.application.Platform;
 
 

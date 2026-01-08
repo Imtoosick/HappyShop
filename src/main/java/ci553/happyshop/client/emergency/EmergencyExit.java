@@ -8,6 +8,8 @@ import javafx.scene.control.Button;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import ci553.happyshop.client.audio.UISoundInstaller;
+
 
 /**
  * The class EmergencyExit used to immediately shut down the entire application.
@@ -45,6 +47,7 @@ public class EmergencyExit {
 
         borderPane.setStyle(UIStyle.rootStyle);
         Scene scene = new Scene(borderPane, WIDTH, HEIGHT);
+        UISoundInstaller.install(borderPane);
         Stage window = new Stage();
         window.setScene(scene);
         window.setTitle("🛒 EXIT");

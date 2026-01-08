@@ -17,6 +17,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import ci553.happyshop.client.audio.UISoundInstaller;
+
 
 /**
  * The CustomerView is separated into two sections by a line :
@@ -68,6 +70,7 @@ public class CustomerView  {
         hbRoot.setStyle(UIStyle.rootStyle);
 
         Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
+        UISoundInstaller.install(hbRoot);
         window.setScene(scene);
         window.setTitle("🛒 HappyShop Customer Client");
         WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
