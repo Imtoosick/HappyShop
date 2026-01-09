@@ -55,7 +55,7 @@ public class StorageLocation {
     public static final Path imageResetFolderPath = Paths.get(imageResetFolder);
 
     // Orders folders and their Path
-    public static final String ordersFolder = "orders";
+    public static final String ordersFolder = java.nio.file.Paths.get("orders").toAbsolutePath().toString() + java.io.File.separator;
     public static final Path ordersPath = Paths.get(ordersFolder);
     public static final Path orderedPath = ordersPath.resolve("ordered");//orders/ordered to store orders at Ordered state
     public static final Path progressingPath = ordersPath.resolve("progressing");// orders/progressing to store orders at Progressing state

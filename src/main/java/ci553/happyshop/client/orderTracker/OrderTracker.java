@@ -3,15 +3,14 @@ package ci553.happyshop.client.orderTracker;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.orderManagement.OrderState;
 import ci553.happyshop.utility.UIStyle;
-import ci553.happyshop.utility.WinPosManager;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
+import javafx.stage.Window;
 import ci553.happyshop.client.audio.UISoundInstaller;
-
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,7 +29,9 @@ public class OrderTracker {
     private static final TreeMap<Integer, OrderState> ordersMap = new TreeMap<>();
     private final TextArea taDisplay; //area to show all orderId and their state on the GUI
 
-     //Constructor initializes the UI, a title Label, and a TextArea for displaying the order details.
+    private VBox root;
+
+    //Constructor initializes the UI, a title Label, and a TextArea for displaying the order details.
     public OrderTracker() {
         Label laTitle = new Label("Order_ID,  State");
         laTitle.setStyle(UIStyle.labelTitleStyle);
@@ -39,19 +40,15 @@ public class OrderTracker {
         taDisplay.setEditable(false);
         taDisplay.setStyle(UIStyle.textFiledStyle);
 
-        VBox vbox = new VBox(10,laTitle, taDisplay);
-        vbox.setAlignment(Pos.TOP_CENTER);
-        vbox.setStyle(UIStyle. rootStyleGray);
+        root = new VBox(10,laTitle, taDisplay);
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setStyle(UIStyle. rootStyleGray);
 
-        Scene scene = new Scene(vbox, WIDTH, HEIGHT);
-        UISoundInstaller.install(vbox);
-        Stage window = new Stage();
-        window.setScene(scene);
-        window.setTitle("🛒Order Tracker");
+        UISoundInstaller.install(root);
+    }
 
-        // Registers the window's position with WinPosManager.
-        WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
-        window.show();
+    public Parent getRoot() {
+        return root;
     }
 
     /**
@@ -73,8 +70,8 @@ public class OrderTracker {
         displayOrderMap();// Updates the display with the new order map.
     }
 
-     //Displays the current order map in the TextArea.
-     //Iterates over the ordersMap and formats each order ID and state for display.
+    //Displays the current order map in the TextArea.
+    //Iterates over the ordersMap and formats each order ID and state for display.
     private void displayOrderMap() {
         StringBuilder sb = new StringBuilder();
         for(Map.Entry<Integer, OrderState> entry : ordersMap.entrySet()) {
@@ -87,3 +84,4 @@ public class OrderTracker {
     }
 
 }
+

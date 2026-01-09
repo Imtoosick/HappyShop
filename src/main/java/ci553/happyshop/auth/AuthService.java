@@ -8,8 +8,8 @@ public class AuthService {
     private final Map<String, String> users = new HashMap<>();
 
     public AuthService() {
-        // I have coded in basic users for coursework friendliness and simulation purposes
-        users.put("admin", "admin");
+        // I have coded in basic test users for coursework friendliness and simulation purposes
+        users.put("developer", "developer");
         users.put("user", "password");
     }
 

@@ -3,22 +3,22 @@ package ci553.happyshop.client.warehouse;
 import ci553.happyshop.catalogue.Product;
 import ci553.happyshop.utility.StorageLocation;
 import ci553.happyshop.utility.UIStyle;
-import ci553.happyshop.utility.WinPosManager;
 import ci553.happyshop.utility.WindowBounds;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javafx.geometry.Insets;
-import javafx.scene.input.MouseEvent;
 import ci553.happyshop.client.audio.UISoundInstaller;
 
 /**
@@ -70,11 +69,15 @@ public class WarehouseView  {
     private final int COLUMN_WIDTH = WIDTH / 2 - 10;
 
     public WarehouseController controller;
-    private Stage viewWindow;
+    private Window viewWindow;
     /** A reference to the main window that is used to get its bounds (position and size).
      * This allows us to position other windows (like the History window or alert) relative to the Warehouse window.
      * It helps in keeping the UI layout consistent by placing new windows near the Warehouse window.
      */
+
+    private HBox hbRoot;
+    private VBox vbSearchPage;
+    private VBox vbProductFormPage;
 
     //some elements in searchPage
     TextField tfSearchKeyword; //user typing in it
@@ -132,30 +135,24 @@ public class WarehouseView  {
     String imageUriNewPro; //user slected image Uri
     // URI of the image selected by the user for a new product. This value is retrieved from the image chooser.
 
-    public void start(Stage window) {
-        VBox vbSearchPage = createSearchPage();
-        VBox vbProductFormPage = createProductFormPage();
+    public Parent getRoot() {
+        if (hbRoot == null) {
+            vbSearchPage = createSearchPage();
+            vbProductFormPage = createProductFormPage();
 
-        // Divider line between SearchPage and ProductFormPage
-        Line line = new Line(0, 0, 0, HEIGHT);
-        line.setStrokeWidth(4);
-        line.setStroke(Color.LIGHTGREEN);
-        VBox lineContainer = new VBox(line);
-        lineContainer.setPrefWidth(4);
-        lineContainer.setAlignment(Pos.CENTER);
+            Line line = new Line(0, 0, 0, HEIGHT);
+            line.setStrokeWidth(4);
+            line.setStroke(Color.LIGHTGREEN);
+            VBox lineContainer = new VBox(line);
+            lineContainer.setPrefWidth(4);
+            lineContainer.setAlignment(Pos.CENTER);
 
-        //top level layout manager
-        HBox hbRoot = new HBox(15, vbSearchPage, lineContainer, vbProductFormPage);
-        hbRoot.setStyle(UIStyle.rootStyleWarehouse);
+            hbRoot = new HBox(15, vbSearchPage, lineContainer, vbProductFormPage);
+            hbRoot.setStyle(UIStyle.rootStyleWarehouse);
 
-        Scene scene = new Scene(hbRoot, WIDTH, HEIGHT);
-        UISoundInstaller.install(hbRoot);
-        window.setScene(scene);
-        window.setTitle("Search_Page  🛒🛒HappyShop_Warehouse🛒🛒  ProductForm_Page(Edit & AddNew Product)");
-        WinPosManager.registerWindow(window,WIDTH,HEIGHT); // Registers the window with WinPosManager to
-        // dynamically position itself based on its size, and any already displayed windows.
-        window.show();
-        viewWindow = window; // Sets the global viewWindow reference to this window for future reference and management.
+            UISoundInstaller.install(hbRoot);
+        }
+        return hbRoot;
     }
 
     private VBox createSearchPage() {
@@ -174,7 +171,6 @@ public class WarehouseView  {
             }
         });
         Button btnSearch = new Button("🔍");
-        //Button btnSearch = new Button("\uD83D\uDD0D"); // Unicode for 🔍
         btnSearch.setOnAction(this::buttonClick);
         btnSearch.setStyle(UIStyle.buttonStyle);
         HBox hbSearch = new HBox(10, tfSearchKeyword, btnSearch);
@@ -192,12 +188,10 @@ public class WarehouseView  {
 
         HBox hbLaBtns = new HBox(10, laSearchSummary, btnEdit,btnDelete);
         hbLaBtns.setAlignment(Pos.CENTER);
-        hbLaBtns.setPadding(new Insets(5)); //setPadding only works on Layout manager
-        //hbLaBtns.setStyle("-fx-padding: 5px;"); //setStyle works on any Node (eg. layout manager, controls)
+        hbLaBtns.setPadding(new Insets(5));
 
-        // data, an observable ArrayList, observed by obrLvProducts
         obeProductList = FXCollections.observableArrayList();
-        obrLvProducts = new ListView<>(obeProductList);//ListView proListView observes proList
+        obrLvProducts = new ListView<>(obeProductList);
         obrLvProducts.setPrefHeight(HEIGHT - 100);
         obrLvProducts.setFixedCellSize(50);
         obrLvProducts.setStyle(UIStyle.listViewStyle);
@@ -221,23 +215,21 @@ public class WarehouseView  {
                     setGraphic(null);
                     System.out.println("setCellFactory - empty item");
                 } else {
-                    String imageName = product.getProductImageName(); // Get image name (e.g. "0001.jpg")
+                    String imageName = product.getProductImageName();
                     String relativeImageUrl = StorageLocation.imageFolder + imageName;
-                    // Get the full absolute path to the image
                     Path imageFullPath = Paths.get(relativeImageUrl).toAbsolutePath();
-                    String imageFullUri = imageFullPath.toUri().toString();// Build the full image Uri
+                    String imageFullUri = imageFullPath.toUri().toString();
 
                     ImageView ivPro;
                     try {
-                        ivPro = new ImageView(new Image(imageFullUri, 50,45, true,true)); // Attempt to load the product image
+                        ivPro = new ImageView(new Image(imageFullUri, 50,45, true,true));
                     } catch (Exception e) {
-                        // If loading fails, use a default image directly from the resources folder
-                        ivPro = new ImageView(new Image("imageHolder.jpg",50,45,true,true)); // Directly load from resources
+                        ivPro = new ImageView(new Image("imageHolder.jpg",50,45,true,true));
                     }
 
-                    Label laProToString = new Label(product.toString()); // Create a label for product details
-                    HBox hbox = new HBox(10, ivPro, laProToString); // Put ImageView and label in a horizontal layout
-                    setGraphic(hbox);  // Set the whole row content
+                    Label laProToString = new Label(product.toString());
+                    HBox hbox = new HBox(10, ivPro, laProToString);
+                    setGraphic(hbox);
                 }
             }
         });
@@ -260,18 +252,14 @@ public class WarehouseView  {
         cbProductFormMode = new ComboBox<>();
         cbProductFormMode.setStyle(UIStyle.comboBoxStyle);
         cbProductFormMode.getItems().addAll("Edit Existing Product in Stock", "Add New Product to Stock");
-        // Set default selected value, so only when value changed trigger setOnAction
         cbProductFormMode.setValue("Edit Existing Product in Stock");
 
         vbEditProduct = createEditProdcutChild();
-        disableEditProductChild(true); //disable editable component until user selects a product and cilck btnEdit
+        disableEditProductChild(true);
         vbNewProduct = createNewProductChild();
 
-        // Initially set the second child (after ComboBox) to editProduct
         VBox vbProductFormPage = new VBox(10, cbProductFormMode, vbEditProduct);
 
-        // Check selected value and place the corerect child
-        //isImageNameEditable for imageChooser using a single method to differciate from edit/add product
         cbProductFormMode.setOnAction(actionEvent -> {
             if (cbProductFormMode.getValue().equals("Edit Existing Product in Stock")) {
                 vbProductFormPage.getChildren().set(1,vbEditProduct);
@@ -288,9 +276,7 @@ public class WarehouseView  {
         return vbProductFormPage;
     }
 
-
     private VBox createEditProdcutChild() {
-        //HBox for Id Label and TextField
         Label laId = new Label("ID"+" ".repeat(8));
         laId.setStyle(UIStyle.labelStyle);
         tfIdEdit = new TextField();
@@ -299,7 +285,6 @@ public class WarehouseView  {
         HBox hbId = new HBox(10, laId, tfIdEdit);
         hbId.setAlignment(Pos.CENTER_LEFT);
 
-        // HBox for Price Label and TextField
         Label laPrice = new Label("Price_£");
         laPrice.setStyle(UIStyle.labelStyle);
         tfPriceEdit = new TextField();
@@ -307,38 +292,30 @@ public class WarehouseView  {
         HBox hbPrice = new HBox(10, laPrice, tfPriceEdit);
         hbPrice.setAlignment(Pos.CENTER_LEFT);
 
-        //VBox for id and price
         VBox vbIdPrice = new VBox(10, hbId, hbPrice);
 
-        // Product Image
         ivProEdit = new ImageView("WarehouseImageHolder.jpg");
         ivProEdit.setFitWidth(100);
         ivProEdit.setFitHeight(70);
-        ivProEdit.setPreserveRatio(true); //Image keeps its original shape and fits inside 100×70
-        ivProEdit.setSmooth(true);//make it smooth and nice-looking
+        ivProEdit.setPreserveRatio(true);
+        ivProEdit.setSmooth(true);
 
-        // Image Click Event (Open File Chooser)
         ivProEdit.setOnMouseClicked(this::imageChooser);
 
-        // HBox for Id, Price, and Image in one row
         HBox hbIdPriceImage = new HBox(20, vbIdPrice, ivProEdit);
         hbIdPriceImage.setAlignment(Pos.CENTER_LEFT);
 
-        // Editing stock
         Label laStock = new Label("Stock"+" ".repeat(3));
         laStock.setStyle(UIStyle.labelStyle);
 
-        // TextField current stock
         tfStockEdit = new TextField();
         tfStockEdit.setEditable(false);
         tfStockEdit.setStyle("-fx-font-size: 14px; -fx-pref-width: 70px;");
 
-        // TextField Change By
         tfChangeByEdit = new TextField();
         tfChangeByEdit.setPromptText("change by");
         tfChangeByEdit.setStyle("-fx-font-size: 14px; -fx-pref-width: 50px;");
 
-        // Add and Subtract Buttons for changing stock
         btnAdd = new Button("➕");
         btnAdd.setStyle(UIStyle.greenFillBtnStyle);
         btnAdd.setPrefWidth(35);
@@ -349,11 +326,9 @@ public class WarehouseView  {
         btnSub.setPrefWidth(35);
         btnSub.setOnAction(this::buttonClick);
 
-        //Hbox for all things related to edit stock
         HBox hbStock = new HBox(10, laStock, tfStockEdit,tfChangeByEdit, btnAdd,btnSub);
         hbStock.setAlignment(Pos.CENTER_LEFT);
 
-        // VBox for Description label and TextArea
         Label laDes = new Label("Description:");
         laDes.setStyle(UIStyle.labelStyle);
         taDescriptionEdit = new TextArea();
@@ -363,7 +338,6 @@ public class WarehouseView  {
         VBox vbDescription = new VBox(laDes, taDescriptionEdit);
         vbDescription.setAlignment(Pos.CENTER_LEFT);
 
-        // OK & Clear Buttons
         btnCancelEdit = new Button("Cancel");
         btnCancelEdit.setStyle(UIStyle.grayFillBtnStyle);
         btnCancelEdit.setPrefWidth(100);
@@ -374,20 +348,15 @@ public class WarehouseView  {
         btnSubmitEdit.setPrefWidth(100);
         btnSubmitEdit.setOnAction(this::buttonClick);
 
-        // HBox for OK & Cancel Buttons
         HBox hbOkCancelBtns = new HBox(15, btnCancelEdit, btnSubmitEdit);
         hbOkCancelBtns.setAlignment(Pos.CENTER);
-        //hbOkCancelBtns.setPadding(new Insets(5));
 
-        // Main Layout
         VBox vbEditStockChild = new VBox(10, hbIdPriceImage, hbStock, vbDescription, hbOkCancelBtns);
         vbEditStockChild.setStyle(UIStyle.manageStockChildStyle);
         return vbEditStockChild;
     }
 
-
     private VBox createNewProductChild() {
-        //HBox for Id Label and TextField
         Label laId = new Label("ID"+ " ".repeat(9));
         laId.setStyle(UIStyle.labelStyle);
         tfIdNewPro = new TextField();
@@ -395,7 +364,6 @@ public class WarehouseView  {
         HBox hbId = new HBox(10, laId, tfIdNewPro);
         hbId.setAlignment(Pos.CENTER_LEFT);
 
-        // HBox for Price Label and TextField
         Label laPrice = new Label("Price_£ ");
         laPrice.setStyle(UIStyle.labelStyle);
         tfPriceNewPro = new TextField();
@@ -403,7 +371,6 @@ public class WarehouseView  {
         HBox hbPrice = new HBox(10, laPrice, tfPriceNewPro);
         hbPrice.setAlignment(Pos.CENTER_LEFT);
 
-        //  HBox for stock label and textFiled
         Label laStock = new Label("Stock" +" ".repeat(4));
         laStock.setStyle(UIStyle.labelStyle);
         tfStockNewPro = new TextField();
@@ -411,23 +378,19 @@ public class WarehouseView  {
         HBox hbStock = new HBox(10, laStock, tfStockNewPro);
         hbStock.setAlignment(Pos.CENTER_LEFT);
 
-        //VBox for id, price,stock
         VBox vbIdPriceStock = new VBox(10, hbId, hbPrice,hbStock);
 
-        // VBox for Product Image and name keyword
         ivProNewPro = new ImageView("WarehouseImageHolder.jpg");
         ivProNewPro.setFitWidth(100);
         ivProNewPro.setFitHeight(70);
-        ivProEdit.setPreserveRatio(true); //Image keeps its original shape and fits inside 100×70
-        ivProEdit.setSmooth(true);//make it smooth and nice-looking
+        ivProNewPro.setPreserveRatio(true);
+        ivProNewPro.setSmooth(true);
 
-        // Image Click Event (Open File Chooser)
         ivProNewPro.setOnMouseClicked(this::imageChooser);
-        //Hbox for id,price,stock,image
+
         HBox hbIdPriceStockImage = new HBox(20, vbIdPriceStock, ivProNewPro);
         hbIdPriceStockImage.setAlignment(Pos.CENTER_LEFT);
 
-        // VBox for Description label and TextArea
         Label laDes = new Label("Description:");
         laDes.setStyle(UIStyle.labelStyle);
         taDescriptionNewPro = new TextArea();
@@ -437,7 +400,6 @@ public class WarehouseView  {
         VBox vbDescription = new VBox(laDes, taDescriptionNewPro);
         vbDescription.setAlignment(Pos.CENTER_LEFT);
 
-        // OK & Cancel Buttons
         Button btnClear = new Button("Cancel");
         btnClear.setStyle(UIStyle.grayFillBtnStyle);
         btnClear.setPrefWidth(100);
@@ -447,12 +409,10 @@ public class WarehouseView  {
         btnAddNewPro.setStyle(UIStyle.blueFillBtnStyle);
         btnAddNewPro.setPrefWidth(100);
         btnAddNewPro.setOnAction(this::buttonClick);
-        // HBox for OK & clear Buttons
+
         HBox hbOkCancelBtns = new HBox(15, btnClear, btnAddNewPro);
         hbOkCancelBtns.setAlignment(Pos.CENTER);
-        //hbOkCancelBtns.setPadding(new Insets(5));
 
-        // Main Layout
         VBox vbAddNewProductToStockChild = new VBox(10, hbIdPriceStockImage, vbDescription, hbOkCancelBtns);
         vbAddNewProductToStockChild.setStyle(UIStyle.manageStockChildStyle1);
         return vbAddNewProductToStockChild;
@@ -470,15 +430,13 @@ public class WarehouseView  {
         btnSubmitEdit.setDisable(disable);
     }
 
-
     private void buttonClick(ActionEvent event)  {
         Button btn= (Button)event.getSource();
         String action = btn.getText();
 
-        //only when user click btnEidt and a product was selected, enable editable field of editChild
         if(action.equals("Edit") && obrLvProducts.getSelectionModel().getSelectedItem()!=null) {
-            disableEditProductChild(false); //a product was selected, enable editChild
-            cbProductFormMode.setValue("Edit Existing Product in Stock"); //show EditChild
+            disableEditProductChild(false);
+            cbProductFormMode.setValue("Edit Existing Product in Stock");
         }
 
         try{
@@ -493,22 +451,17 @@ public class WarehouseView  {
     private void imageChooser(MouseEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
-        File file = fileChooser.showOpenDialog(null); //return absolute fullpath of the user selected file
-                                                              //eg C:/Users/John/Pictures/sample.jpg
+        File file = fileChooser.showOpenDialog(null);
         if (file != null) {
 
             if (theProFormMode.equals("EDIT")) {
                 isUserSelectedImageEdit = true;
-                // Set image preview
                 ivProEdit.setImage(new Image(file.toURI().toString()));
-                // Get the selected image path, and name
-                userSelectedImageUriEdit = file.getAbsolutePath(); //eg C:\Users\shan\Desktop\mark.jpg
-                //file.getParent();  // Get the folder
+                userSelectedImageUriEdit = file.getAbsolutePath();
                 System.out.println("Selected Image Path: " + userSelectedImageUriEdit);
                 System.out.println("Selected Image name: " + file.getName());
             }
             if (theProFormMode.equals("NEW")) {
-                // Set image preview
                 ivProNewPro.setImage(new Image(file.toURI().toString()));
                 imageUriNewPro = file.getAbsolutePath();
                 System.out.println("Selected Image Path: " + imageUriNewPro);
@@ -517,7 +470,6 @@ public class WarehouseView  {
         }
     }
 
-    //update the product listVew of serachPage
     void updateObservableProductList( ArrayList<Product> productList) {
         int proCounter = productList.size();
         System.out.println(proCounter);
@@ -532,7 +484,6 @@ public class WarehouseView  {
         tfChangeByEdit.clear();
     }
 
-    //update interface of editing existing product in stock
     void updateEditProductChild(String id, String price, String stock, String des, String imageUrl) {
         tfIdEdit.setText(id);
         tfPriceEdit.setText(price);
@@ -541,9 +492,8 @@ public class WarehouseView  {
 
         System.out.println(imageUrl);
         try{
-            ivProEdit.setImage(new Image(imageUrl));  // Attempt to load the product image
+            ivProEdit.setImage(new Image(imageUrl));
         } catch (Exception e) {
-            // If loading fails, use a default image directly from the resources folder
             ivProEdit.setImage(new Image("imageHolder.jpg"));
         }
     }
@@ -559,45 +509,29 @@ public class WarehouseView  {
     }
 
     void resetNewProChild() {
-       tfIdNewPro.setText("");
-       tfPriceNewPro.setText("");
-       tfStockNewPro.setText("");
-       taDescriptionNewPro.setText("");
-       ivProNewPro.setImage(new Image("WarehouseImageHolder.jpg"));
-       imageUriNewPro = null; //clear the selcted image
-       System.out.println("resetNewProChild in view called");
+        tfIdNewPro.setText("");
+        tfPriceNewPro.setText("");
+        tfStockNewPro.setText("");
+        taDescriptionNewPro.setText("");
+        ivProNewPro.setImage(new Image("WarehouseImageHolder.jpg"));
+        imageUriNewPro = null;
+        System.out.println("resetNewProChild in view called");
     }
 
     WindowBounds getWindowBounds() {
-        return new WindowBounds(viewWindow.getX(),
-                                viewWindow.getY(),
-                                viewWindow.getWidth(),
-                                viewWindow.getHeight());
+        if (viewWindow != null) {
+            return new WindowBounds(viewWindow.getX(),
+                    viewWindow.getY(),
+                    viewWindow.getWidth(),
+                    viewWindow.getHeight());
+        }
+        Window w = hbRoot != null && hbRoot.getScene() != null ? hbRoot.getScene().getWindow() : null;
+        if (w == null) {
+            return new WindowBounds(0, 0, WIDTH, HEIGHT);
+        }
+        return new WindowBounds(w.getX(), w.getY(), w.getWidth(), w.getHeight());
     }
-
-    //   //another way to reset the editChild and NewProChild
-//   // remove the current one then recreate them and add them back
-//    //not use it in this version
-//    public void resetManageStockChild() {
-//        vbManagePage.getChildren().remove(1); // Remove the second child (editChild or addNewProChild)
-//
-//        //Decide which child to recreate and add back
-//        if (theManageType.equals("edit")) {
-//            vbEditProChild = editStockChild(); // Recreate the child
-//            vbManagePage.getChildren().add(vbEditProChild);
-//            proListView.requestFocus();
-//            imageSelectedEdit = false;//reset to false if the user canged image in previous editing
-//        }
-//        if (theManageType.equals("addNew")) {
-//            vbAddProChild = addNewProductToStockChild();  // Recreate the child
-//            vbManagePage.getChildren().add(vbAddProChild);
-//            tfIdNewPro.requestFocus();
-//            imageSelectedNewPro = false;
-//        }
-//    }
-
-//
-
 }
+
 
 

@@ -137,23 +137,22 @@ public class OrderHub  {
     public void changeOrderStateMoveFile(int orderId, OrderState newState) throws IOException {
         if(orderMap.containsKey(orderId) && !orderMap.get(orderId).equals(newState))
         {
-            //change orderState in OrderMap, notify OrderTrackers and pickers
-            orderMap.put(orderId, newState);
-            notifyOrderTrackers();
-            notifyPickerModels();
-
-            //change orderState in order file and move the file to new state folder
             switch(newState){
                 case OrderState.Progressing:
                     OrderFileManager.updateAndMoveOrderFile(orderId, newState,orderedPath,progressingPath);
                     break;
                 case OrderState.Collected:
                     OrderFileManager.updateAndMoveOrderFile(orderId, newState,progressingPath,collectedPath);
-                    removeCollectedOrder(orderId); //Scheduled removal
+                    removeCollectedOrder(orderId);
                     break;
             }
+
+            orderMap.put(orderId, newState);
+            notifyOrderTrackers();
+            notifyPickerModels();
         }
     }
+
 
     /**
      * Removes collected orders from the system after they have been collected for 10 seconds.

@@ -1,26 +1,25 @@
 package ci553.happyshop.client;
 
 import ci553.happyshop.client.customer.*;
-
 import ci553.happyshop.client.emergency.EmergencyExit;
 import ci553.happyshop.client.orderTracker.OrderTracker;
 import ci553.happyshop.client.picker.PickerController;
 import ci553.happyshop.client.picker.PickerModel;
 import ci553.happyshop.client.picker.PickerView;
-
 import ci553.happyshop.client.warehouse.*;
 import ci553.happyshop.orderManagement.OrderHub;
 import ci553.happyshop.storageAccess.DatabaseRW;
 import ci553.happyshop.storageAccess.DatabaseRWFactory;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 import java.io.IOException;
 import ci553.happyshop.client.audio.BackgroundMusic;
-import javafx.application.Platform;
 import ci553.happyshop.auth.AuthService;
 import ci553.happyshop.auth.LoginView;
-
-
 
 /**
  * The Main JavaFX application class. The Main class is executable directly.
@@ -41,6 +40,8 @@ import ci553.happyshop.auth.LoginView;
 
 public class Main extends Application {
 
+    private TabPane tabPane;
+
     public static void main(String[] args) {
         launch(args); // Launches the JavaFX application and calls the @Override start()
     }
@@ -58,22 +59,20 @@ public class Main extends Application {
 
         loginView.show(() -> {
 
-            startCustomerClient();
-            startPickerClient();
-            startOrderTracker();
+            tabPane = new TabPane();
 
             startCustomerClient();
-            startPickerClient();
-            startOrderTracker();
+            startPickerTab();
+            startWarehouseTab();
+            startOrderTrackerTab();
+            startEmergencyTab();
 
-            // Initializes the order map for the OrderHub. This must be called after starting the observer clients
-            // (such as OrderTracker and Picker clients) to ensure they are properly registered for receiving updates.
             initializeOrderMap();
 
-            startWarehouseClient();
-            startWarehouseClient();
-
-            startEmergencyExit();
+            Scene scene = new Scene(tabPane, 1000, 650);
+            window.setScene(scene);
+            window.setTitle("HappyShop");
+            window.show();
         });
     }
 
@@ -96,22 +95,14 @@ public class Main extends Application {
         cusController.cusModel = cusModel;
         cusModel.cusView = cusView;
         cusModel.databaseRW = databaseRW;
-        cusView.start(new Stage());
 
-        //RemoveProductNotifier removeProductNotifier = new RemoveProductNotifier();
-        //removeProductNotifier.cusView = cusView;
-        //cusModel.removeProductNotifier = removeProductNotifier;
+        Tab tab = new Tab("Customer");
+        tab.setClosable(false);
+        tab.setContent(cusView.getRoot());
+        tabPane.getTabs().add(tab);
     }
 
-    /** The picker GUI, - for staff to pack customer's order,
-     *
-     * Creates the Model, View, and Controller objects for the Picker client.
-     * Links them together so they can communicate with each other.
-     * Starts the Picker interface.
-     *
-     * Also registers the PickerModel with the OrderHub to receive order notifications.
-     */
-    private void startPickerClient(){
+    private void startPickerTab(){
         PickerModel pickerModel = new PickerModel();
         PickerView pickerView = new PickerView();
         PickerController pickerController = new PickerController();
@@ -119,15 +110,21 @@ public class Main extends Application {
         pickerController.pickerModel = pickerModel;
         pickerModel.pickerView = pickerView;
         pickerModel.registerWithOrderHub();
-        pickerView.start(new Stage());
+
+        Tab tab = new Tab("Picker");
+        tab.setClosable(false);
+        tab.setContent(pickerView.getRoot());
+        tabPane.getTabs().add(tab);
     }
 
-    //The OrderTracker GUI - for customer to track their order's state(Ordered, Progressing, Collected)
-    //This client is simple and does not follow the MVC pattern, as it only registers with the OrderHub
-    //to receive order status notifications. All logic is handled internally within the OrderTracker.
-    private void startOrderTracker(){
+    private void startOrderTrackerTab(){
         OrderTracker orderTracker = new OrderTracker();
         orderTracker.registerWithOrderHub();
+
+        Tab tab = new Tab("Order Tracker");
+        tab.setClosable(false);
+        tab.setContent(orderTracker.getRoot());
+        tabPane.getTabs().add(tab);
     }
 
     //initialize the orderMap<orderId, orderState> for OrderHub during system startup
@@ -145,35 +142,40 @@ public class Main extends Application {
      * which track the position of the Warehouse window and are triggered by the Model when needed.
      * These components are linked after launching the Warehouse interface.
      */
-    private void startWarehouseClient(){
+    private void startWarehouseTab(){
         WarehouseView view = new WarehouseView();
         WarehouseController controller = new WarehouseController();
         WarehouseModel model = new WarehouseModel();
         DatabaseRW databaseRW = DatabaseRWFactory.createDatabaseRW();
 
-        // Link controller, model, and view and start view
         view.controller = controller;
         controller.model = model;
         model.view = view;
         model.databaseRW = databaseRW;
-        view.start(new Stage());
 
-        //create dependent views that need window info
         HistoryWindow historyWindow = new HistoryWindow();
         AlertSimulator alertSimulator = new AlertSimulator();
 
-        // Link after start
         model.historyWindow = historyWindow;
         model.alertSimulator = alertSimulator;
         historyWindow.warehouseView = view;
         alertSimulator.warehouseView = view;
+
+        Tab tab = new Tab("Warehouse");
+        tab.setClosable(false);
+        tab.setContent(view.getRoot());
+        tabPane.getTabs().add(tab);
     }
 
     //starts the EmergencyExit GUI, - used to close the entire application immediatelly
-    private void startEmergencyExit(){
-        EmergencyExit.getEmergencyExit();
+    private void startEmergencyTab(){
+        EmergencyExit emergencyExit = EmergencyExit.getEmergencyExit();
+
+        Tab tab = new Tab("Emergency");
+        tab.setClosable(false);
+        tab.setContent(emergencyExit.getRoot());
+        tabPane.getTabs().add(tab);
     }
+
 }
-
-
 

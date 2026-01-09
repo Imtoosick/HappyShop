@@ -23,15 +23,20 @@ public final class BackgroundMusic {
         player = new MediaPlayer(media);
 
         player.setCycleCount(MediaPlayer.INDEFINITE);
-        player.setVolume(0.25);// Adjusts the vlume level
+        player.setVolume(0.25);// Adjusts the volume level
         player.play();
     }
 
     public static void stop() {
-        if (player != null) {
-            player.stop();
-            player.dispose();
-            player = null;
+        try {
+            if (player != null) {
+                player.stop();
+                player.dispose();
+                player = null;
+            }
+        } catch (Exception ignored) {
         }
     }
+
 }
+

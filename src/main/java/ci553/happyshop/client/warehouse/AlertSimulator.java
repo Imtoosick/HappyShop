@@ -49,7 +49,7 @@ public class AlertSimulator {
 
     // Create the Scene (only once)
     private  void createScene() {
-        Label laTitle = new Label("\u26A0 Please fix input errors..."); // for emoji ⚠️
+        Label laTitle = new Label("\u26A0 Please fix input errors..."); // for emoji
         laTitle.setStyle(UIStyle.alertTitleLabelStyle); //red
 
         taErrorMsg = new TextArea();

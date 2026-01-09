@@ -69,10 +69,14 @@ public class OrderFileManager {
         String orderFileName = String.valueOf(orderId)+".txt";
         Path sourcePath = sourceDir.resolve(orderFileName);
         Path targetPath = targetDir.resolve(orderFileName);
+
+        Files.createDirectories(sourceDir);
+        Files.createDirectories(targetDir);
+
         if (Files.exists(sourcePath)) {
-            updateOrderStateAndTime(sourceDir,orderId,newState); //Edit the file to update order state and add time
-            if(!sourceDir.equals(targetDir)) //Move the file only if the source and destination are different
-                Files.move(sourcePath,targetPath);
+            updateOrderStateAndTime(sourceDir,orderId,newState);
+            if(!sourceDir.equals(targetDir))
+                Files.move(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
             return true;
         }
         else{
@@ -80,6 +84,7 @@ public class OrderFileManager {
             return false;
         }
     }
+
 
     /**
      * Updates the state and timestamp field inside the order file.

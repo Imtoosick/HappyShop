@@ -1,15 +1,12 @@
 package ci553.happyshop.client.picker;
 
 import ci553.happyshop.utility.UIStyle;
-import ci553.happyshop.utility.WinPosManager;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
 import ci553.happyshop.client.audio.UISoundInstaller;
-
 
 import java.io.IOException;
 
@@ -31,37 +28,28 @@ public class PickerView  {
     private final int WIDTH = UIStyle.pickerWinWidth;
     private final int HEIGHT = UIStyle.pickerWinHeight;
 
-    private Scene scene;
+    private VBox root;
     private VBox vbOrderMapRoot;
     private VBox vbOrderDetailRoot;
 
     //Three controllers needs updating when program going on
     private TextArea taOrderMap = new TextArea();
-          // TextArea for displaying a list of orders and their states(orderId → state)
+    // TextArea for displaying a list of orders and their states(orderId → state)
     private TextArea taOrderDetail = new TextArea();
-        // TextArea for displaying detailed information about the selected order after it is assigned to the picker.
+    // TextArea for displaying detailed information about the selected order after it is assigned to the picker.
     private Label laDetailRootTitle;
-       // Label used as the title for the Order Detail section.
-       // Reminds the picker not to close the window if the order hasn't been collected by the customer.
+    // Label used as the title for the Order Detail section.
+    // Reminds the picker not to close the window if the order hasn't been collected by the customer.
 
-    public void start(Stage window) {
-        vbOrderMapRoot = createOrderMapRoot();
-        vbOrderDetailRoot = createOrderDetailRoot();
-        UISoundInstaller.install(vbOrderMapRoot);
-        UISoundInstaller.install(vbOrderDetailRoot);
-        scene = new Scene(vbOrderMapRoot, WIDTH, HEIGHT);
-        window.setScene(scene);
-        window.setTitle("🛒 HappyShop Order Picker");
-        WinPosManager.registerWindow(window,WIDTH,HEIGHT); //calculate position x and y for this window
-        window.show();
-
-        // Set the window close request to prevent closing if the order is not collected
-        window.setOnCloseRequest(event -> {
-            if (!taOrderDetail.getText().equals("")) {
-                event.consume(); // Prevent window from closing
-                laDetailRootTitle.setText("Pls complete the order before closing.");
-            }
-        });
+    public Parent getRoot() {
+        if (root == null) {
+            vbOrderMapRoot = createOrderMapRoot();
+            vbOrderDetailRoot = createOrderDetailRoot();
+            root = new VBox();
+            root.getChildren().setAll(vbOrderMapRoot);
+            UISoundInstaller.install(root);
+        }
+        return root;
     }
 
     private VBox createOrderMapRoot() {
@@ -110,13 +98,13 @@ public class PickerView  {
             // Based on the button's text, performs the appropriate action and switches the displayed root.
             switch (btnText) {
                 case "Progressing":
-                    scene.setRoot(vbOrderDetailRoot); // switch to OrderDetailRoot
+                    root.getChildren().setAll(vbOrderDetailRoot); // switch to OrderDetailRoot
                     pickerController.doProgressing();
                     break;
 
                 case "Customer Collected":
                     pickerController.doCollected();
-                    scene.setRoot(vbOrderMapRoot); // switch back to orderMapRoot
+                    root.getChildren().setAll(vbOrderMapRoot); // switch back to orderMapRoot
                     break;
             }
         } catch (IOException e) {
@@ -125,8 +113,13 @@ public class PickerView  {
     }
 
     void update(String strOrderMap, String strOrderDetail) {
+        if (root == null) {
+            getRoot();
+        }
         taOrderMap.setText(strOrderMap);
         taOrderDetail.setText(strOrderDetail);
         laDetailRootTitle.setText("Progressing Order Details");
     }
 }
+
+
