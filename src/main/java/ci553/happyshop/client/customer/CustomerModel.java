@@ -38,8 +38,9 @@ public class CustomerModel {
     private String displayTaReceipt = "";                                // Text area content showing receipt after checkout (Receipt Page)
 
     //SELECT productID, description, image, unitPrice,inStock quantity
-    void search() throws SQLException {
+    public void search() throws SQLException {
         String productId = cusView.tfId.getText().trim();
+
         if(!productId.isEmpty()){
             theProduct = databaseRW.searchByProductId(productId); //search database
             if(theProduct != null && theProduct.getStockQuantity()>0){
@@ -63,6 +64,22 @@ public class CustomerModel {
             System.out.println("Please type ProductID.");
         }
         updateView();
+    }
+
+    public void loadProductsIntoDropdown() throws SQLException {
+        ArrayList<Product> products = databaseRW.searchProduct("");
+        products.sort((a, b) -> a.getProductDescription().compareToIgnoreCase(b.getProductDescription()));
+
+        ArrayList<String> names = new ArrayList<>();
+        Map<String, String> nameToId = new HashMap<>();
+
+        for (Product p : products) {
+            String name = p.getProductDescription();
+            names.add(name);
+            nameToId.put(name, p.getProductId());
+        }
+
+        cusView.setNameDropdownItems(names, nameToId);
     }
 
     void addToTrolley(){

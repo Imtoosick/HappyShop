@@ -17,6 +17,8 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.sql.SQLException;
+
 import ci553.happyshop.client.audio.BackgroundMusic;
 import ci553.happyshop.auth.AuthService;
 import ci553.happyshop.auth.LoginView;
@@ -98,9 +100,17 @@ public class Main extends Application {
 
         Tab tab = new Tab("Customer");
         tab.setClosable(false);
-        tab.setContent(cusView.getRoot());
         tabPane.getTabs().add(tab);
+
+        tab.setContent(cusView.getRoot());
+
+        try {
+            cusModel.loadProductsIntoDropdown();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 
     private void startPickerTab(){
         PickerModel pickerModel = new PickerModel();

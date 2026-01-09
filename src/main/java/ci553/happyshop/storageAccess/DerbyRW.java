@@ -26,6 +26,25 @@ public class DerbyRW implements DatabaseRW {
     //search by Id at first, if get null, search by product name
     //currently used by warehouseModel.
     // try to use this method to upgrade customer client so that user can search by id and name
+    public ArrayList<Product> getAllProductsSortedByName() throws SQLException {
+        ArrayList<Product> productList = new ArrayList<>();
+        String query = "SELECT * FROM ProductTable ORDER BY LOWER(description) ASC";
+
+        try (Connection conn = DriverManager.getConnection(dbURL);
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                productList.add(makeProObjFromDbRecord(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        return productList;
+    }
+
     public ArrayList<Product> searchProduct(String keyword) throws SQLException {
         ArrayList<Product> productList = new ArrayList<>();
 

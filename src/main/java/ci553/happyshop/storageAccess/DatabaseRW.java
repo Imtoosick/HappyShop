@@ -43,7 +43,7 @@ public interface DatabaseRW {
      * @return the matching product, or null if not found
      */
     Product searchByProductId(String productId) throws SQLException;
-
+    ArrayList<Product> getAllProductsSortedByName() throws SQLException;
     /**
      * Attempts to purchase (reduce stocks of) the given list of products.
      * Behavior:

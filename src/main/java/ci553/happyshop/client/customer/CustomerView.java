@@ -5,6 +5,7 @@ import ci553.happyshop.utility.WindowBounds;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -15,6 +16,9 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import ci553.happyshop.client.audio.UISoundInstaller;
 
 
@@ -38,7 +42,10 @@ public class CustomerView  {
     private VBox vbReceiptPage;
 
     TextField tfId; //for user input on the search page. Made accessible so it can be accessed or modified by CustomerModel
-    TextField tfName; //for user input on the search page. Made accessible so it can be accessed by CustomerModel
+    ComboBox<String> cbName;
+    //for user input on the search page. Made accessible so it can be accessed by CustomerModel
+
+    private final Map<String, String> nameToId = new HashMap<>();
 
     //four controllers needs updating when program going on
     private ImageView ivProduct; //image area in searchPage
@@ -46,7 +53,13 @@ public class CustomerView  {
     private TextArea taTrolley; //in trolley Page
     private TextArea taReceipt;//in receipt page
 
-    public HBox getRoot() {
+    public void setNameDropdownItems(ArrayList<String> names, Map<String, String> nameToIdMap) {
+        nameToId.clear();
+        if (nameToIdMap != null) nameToId.putAll(nameToIdMap);
+        cbName.getItems().setAll(names);
+    }
+
+    public Parent getRoot() {
         if (hbRoot == null) {
             VBox vbSearchPage = createSearchPage();
             vbTrolleyPage = CreateTrolleyPage();
@@ -81,10 +94,18 @@ public class CustomerView  {
 
         Label laName = new Label("Name:");
         laName.setStyle(UIStyle.labelStyle);
-        tfName = new TextField();
-        tfName.setPromptText("implement it if you want");
-        tfName.setStyle(UIStyle.textFiledStyle);
-        HBox hbName = new HBox(10, laName, tfName);
+        cbName = new ComboBox<>();
+        cbName.setStyle(UIStyle.textFiledStyle);
+        cbName.setPromptText("Select a Product");
+        HBox hbName = new HBox(10, laName, cbName);
+
+        cbName.setOnAction(e -> {
+            String selectedName = cbName.getValue();
+            if (selectedName != null) {
+                String id = nameToId.get(selectedName);
+                if (id != null) tfId.setText(id);
+            }
+        });
 
         Label laPlaceHolder = new Label(  " ".repeat(15));
         Button btnSearch = new Button("Search");
