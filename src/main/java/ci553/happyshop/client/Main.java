@@ -63,6 +63,8 @@ public class Main extends Application {
 
             tabPane = new TabPane();
 
+            tabPane.setStyle("-fx-background-color: #E6D9FF;");
+
             startCustomerClient();
             startPickerTab();
             startWarehouseTab();

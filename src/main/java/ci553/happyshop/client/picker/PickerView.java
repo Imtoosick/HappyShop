@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import ci553.happyshop.client.audio.UISoundInstaller;
 
@@ -66,7 +67,9 @@ public class PickerView  {
 
         VBox vbOrdersListRoot = new VBox(15, laOrderMapRootTitle, taOrderMap, btnProgressing);
         vbOrdersListRoot.setAlignment(Pos.TOP_CENTER);
-        vbOrdersListRoot.setStyle(UIStyle.rootStyleYellow);
+        vbOrdersListRoot.setStyle(UIStyle.rootStyle);
+        VBox.setVgrow(taOrderMap, Priority.ALWAYS);
+
 
         return vbOrdersListRoot;
     }
@@ -86,7 +89,8 @@ public class PickerView  {
 
         VBox vbOrderDetailsRoot = new VBox(15, laDetailRootTitle, taOrderDetail, btnCollected);
         vbOrderDetailsRoot.setAlignment(Pos.TOP_CENTER);
-        vbOrderDetailsRoot.setStyle(UIStyle.rootStyleBlue);
+        vbOrderDetailsRoot.setStyle(UIStyle.rootStyle);
+        VBox.setVgrow(taOrderDetail, Priority.ALWAYS);
 
         return vbOrderDetailsRoot;
     }
