@@ -4,6 +4,7 @@ module ci553.happyshop {
     requires java.sql;
     requires javafx.graphics;
     requires javafx.media;
+    requires javafx.swing;
 
 
     opens ci553.happyshop to javafx.fxml;

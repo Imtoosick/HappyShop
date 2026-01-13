@@ -16,7 +16,6 @@ public class PaymentDialogue {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Payment");
 
-
         final PaymentResult[] result = new PaymentResult[]{
                 PaymentResult.fail("Payment cancelled")
         };
@@ -32,7 +31,6 @@ public class PaymentDialogue {
         return result[0];
     }
 
-    // ================= PAYMENT SCREEN =================
     private Scene buildPaymentScene(Stage stage, double totalAmount, PaymentResult[] resultHolder) {
 
         Label title = new Label("Pay Total: £" + String.format("%.2f", totalAmount));
@@ -48,7 +46,6 @@ public class PaymentDialogue {
         HBox methodBox = new HBox(15, rbCash, rbCard);
         methodBox.setAlignment(Pos.CENTER);
 
-        // Cash fields
         TextField tfCash = new TextField();
         tfCash.setPromptText("Cash given (e.g. 20)");
         Label lbChange = new Label("Change: £0.00");
@@ -59,7 +56,6 @@ public class PaymentDialogue {
                 lbChange
         );
 
-        // Card fields u can type anything in the correct format as it is just theoretical
         TextField tfCard = new TextField();
         tfCard.setPromptText("Card number (16 digits)");
         TextField tfExpiry = new TextField();
@@ -77,7 +73,6 @@ public class PaymentDialogue {
         );
         cardBox.setDisable(true);
 
-        // Switches between cash/card panels
         group.selectedToggleProperty().addListener((obs, o, n) -> {
             boolean isCash = rbCash.isSelected();
             cashBox.setDisable(!isCash);
@@ -101,15 +96,14 @@ public class PaymentDialogue {
             if (rbCash.isSelected()) {
                 pr = handleCash(totalAmount, tfCash.getText(), lbChange);
             } else {
-                pr = handleCard(totalAmount, tfCard.getText(), tfExpiry.getText(), pfCvv.getText());
+                pr = validateCard(tfCard.getText(), tfExpiry.getText(), pfCvv.getText());
             }
 
-            if (!pr.isSuccess()) {
-                msg.setText(pr.getMessage());
+            if (pr == null || !pr.isSuccess()) {
+                msg.setText(pr == null ? "Payment cancelled" : pr.getMessage());
                 return;
             }
 
-            // this will switch to the success screen
             resultHolder[0] = pr;
             stage.setScene(buildSuccessScene(stage, pr));
         });
@@ -131,10 +125,9 @@ public class PaymentDialogue {
         return new Scene(root, 380, 420);
     }
 
-    // ================= SUCCESS SCREEN =================
     private Scene buildSuccessScene(Stage stage, PaymentResult pr) {
 
-        Label title = new Label("Payment Successful ✅");
+        Label title = new Label("Payment Successful");
         title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
 
         Label thanks = new Label("Thank you for shopping at Z Mart");
@@ -156,8 +149,15 @@ public class PaymentDialogue {
         return new Scene(root, 360, 220);
     }
 
-    // ================= PAYMENT LOGIC =================
     private PaymentResult handleCash(double total, String cashText, Label lbChange) {
+        PaymentResult pr = validateCash(total, cashText);
+        if (pr.isSuccess()) {
+            lbChange.setText("Change: £" + String.format("%.2f", pr.getChange()));
+        }
+        return pr;
+    }
+
+    public PaymentResult validateCash(double total, String cashText) {
         double cash;
         try {
             cash = Double.parseDouble(cashText.trim());
@@ -170,11 +170,10 @@ public class PaymentDialogue {
         }
 
         double change = cash - total;
-        lbChange.setText("Change: £" + String.format("%.2f", change));
         return PaymentResult.okCash(cash, change);
     }
 
-    private PaymentResult handleCard(double total, String number, String expiry, String cvv) {
+    public PaymentResult validateCard(String number, String expiry, String cvv) {
         String digits = number.replaceAll("\\s+", "");
 
         if (!digits.matches("\\d{16}"))
@@ -185,8 +184,7 @@ public class PaymentDialogue {
             return PaymentResult.fail("CVV must be 3 digits.");
 
         String last4 = digits.substring(12);
-        return PaymentResult.okCard(total, last4);
+        return PaymentResult.okCard(0, last4);
     }
 }
-
 
